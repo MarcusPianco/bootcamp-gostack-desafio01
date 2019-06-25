@@ -8,6 +8,26 @@ const projects = [];
 
 //Post request to create a project
 
+var amountRequests = 0;
+
+server.use((req, res, next) => {
+  amountRequests++;
+  console.log(`${amountRequests} Requisições até o momento`);
+  return next();
+});
+
+function checkProjectExist(req, res, next) {
+  const project = projects.find(
+    projectTemp => projectTemp.id === req.params.id
+  );
+
+  if (!project) {
+    return res.status(400).json({ error: 'Project does not exist' });
+  }
+
+  return next();
+}
+
 server.post('/projects', (req, res) => {
   const { id, title, tasks } = req.body;
 
@@ -26,7 +46,7 @@ server.get('/projects', (req, res) => {
   return res.json(projects);
 });
 
-server.put('/projects/:id', (req, res) => {
+server.put('/projects/:id', checkProjectExist, (req, res) => {
   const { id } = req.params;
   const { title } = req.body;
 
@@ -34,8 +54,28 @@ server.put('/projects/:id', (req, res) => {
     if (projectChange.id === id) {
       projectChange.title = title;
       return res.json(projectChange);
-    } else {
-      return res.json('Projeto não encontrado');
+    }
+  });
+});
+
+server.delete('/projects/:id', checkProjectExist, (req, res) => {
+  const { id } = req.params;
+  projects.forEach(project => {
+    if (project.id === id) {
+      projects.splice(projects.indexOf(project), 1);
+      return res.send('Projeto deletado com sucesso');
+    }
+  });
+});
+
+server.post('/projects/:id/tasks', checkProjectExist, (req, res) => {
+  const { id } = req.params;
+  const { title } = req.body;
+
+  projects.forEach(project => {
+    if (project.id === id) {
+      project.tasks.push(title);
+      return res.json(projects);
     }
   });
 });
