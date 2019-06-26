@@ -50,16 +50,16 @@ server.put('/projects/:id', checkProjectExist, (req, res) => {
   const { id } = req.params;
   const { title } = req.body;
 
-  projects.forEach(projectChange => {
-    if (projectChange.id === id) {
-      projectChange.title = title;
-      return res.json(projectChange);
-    }
+  //Usando find com ternário
+  projects.find(projectChange => {
+    projectChange.id === id ? (projectChange.title = title) : null;
   });
+  return res.json(projects);
 });
 
 server.delete('/projects/:id', checkProjectExist, (req, res) => {
   const { id } = req.params;
+  //usando forEach com o condicional if
   projects.forEach(project => {
     if (project.id === id) {
       projects.splice(projects.indexOf(project), 1);
